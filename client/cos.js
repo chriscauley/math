@@ -6,7 +6,7 @@ import { VictoryLine, VictoryChart } from 'victory'
 const resolution = 0.3
 const PERIODS = 3
 const DOMAIN = Math.PI * PERIODS
-const TERMS = 10 * PERIODS
+const TERMS = 5 * PERIODS
 
 const base_colors = {
   red: '#e6261f',
@@ -22,9 +22,6 @@ const base_colors = {
 const COLORS = Object.values(base_colors)
 
 const uiSchema = {
-  terms: {
-    'ui:widget': 'range',
-  },
   highlight: {
     'ui:widget': 'range',
   },
@@ -34,7 +31,6 @@ const series_names = ['cos', 'sin']
 
 const initial = {
   series: 'cos',
-  terms: 5,
   highlight: 0,
 }
 
@@ -45,14 +41,9 @@ const schema = {
       type: 'string',
       enum: series_names,
     },
-    terms: {
-      type: 'integer',
-      maximum: TERMS,
-      minimum: 0,
-    },
     highlight: {
       type: 'integer',
-      maximum: TERMS,
+      maximum: TERMS-1,
       minimum: 0,
     },
   },
@@ -200,14 +191,14 @@ const Chart = ({
 )
 
 const Charts = withConfig((props) => {
-  const { highlight, terms, series } = props.config.formData || initial
+  const { highlight, series } = props.config.formData || initial
   const _color = COLORS[highlight % COLORS.length]
   return (
     <div className="flex flex-wrap">
       <div className="w-1/2">
         <Chart
           mainSeries={SERIES[series].perfect}
-          otherSeries={SERIES[series].taylor_terms.slice(0, terms)}
+          otherSeries={SERIES[series].taylor_terms}
           highlight={highlight}
         />
         {SERIES[series].terms_legend[highlight]}
@@ -215,7 +206,7 @@ const Charts = withConfig((props) => {
       <div className="w-1/2">
         <Chart
           mainSeries={SERIES[series].perfect}
-          otherSeries={SERIES[series].taylor_series.slice(0, terms)}
+          otherSeries={SERIES[series].taylor_series}
           highlight={highlight}
         />
         {SERIES[series].series_legend[highlight]}
