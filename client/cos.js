@@ -1,5 +1,5 @@
 import React from 'react'
-import { range } from 'lodash'
+import { range, sum } from 'lodash'
 import ConfigHook from '@unrest/react-config-hook'
 import { VictoryLine, VictoryChart } from 'victory'
 
@@ -43,7 +43,7 @@ const schema = {
     },
     highlight: {
       type: 'integer',
-      maximum: TERMS-1,
+      maximum: TERMS - 1,
       minimum: 0,
     },
   },
@@ -87,6 +87,12 @@ const SERIES = {
         }
       })
     }),
+    taylor: (x, terms) =>
+      sum(
+        range(terms).map(
+          (n) => (Math.pow(-1, n) * Math.pow(x, n * 2)) / factorial[n * 2],
+        ),
+      ),
     getTerm: (n) => TermBox({ odd: n % 2, n: n * 2 }),
   },
   sin: {
@@ -98,9 +104,17 @@ const SERIES = {
         }
       })
     }),
+    taylor: (x, terms) =>
+      sum(
+        range(terms).map(
+          (n) =>
+            (Math.pow(-1, n) * Math.pow(x, n * 2 + 1)) / factorial[n * 2 + 1],
+        ),
+      ),
     getTerm: (n) => TermBox({ odd: n % 2, n: n * 2 + 1 }),
   },
 }
+window.SERIES = SERIES
 
 series_names.forEach((series_name) => {
   const _series = SERIES[series_name]
@@ -128,19 +142,9 @@ series_names.forEach((series_name) => {
   })
 
   _series.perfect = xs.map((x) => ({ x, y: Math[series_name](x) }))
-  _series.taylor_series = [_series.taylor_terms[0]]
-
-  range(1, TERMS).forEach((n) => {
-    const taylor_term = _series.taylor_terms[n]
-    _series.taylor_series.push(
-      _series.taylor_series[n - 1].map((xy, i) => {
-        return {
-          x: xy.x,
-          y: xy.y + taylor_term[i].y,
-        }
-      }),
-    )
-  })
+  _series.taylor_series = range(1, TERMS + 1).map((terms) =>
+    xs.map((x) => ({ x, y: _series.taylor(x, terms) })),
+  )
 
   _series.taylor_series_error = _series.taylor_series.map((series) => {
     return series.map((xy) => ({
@@ -148,6 +152,17 @@ series_names.forEach((series_name) => {
       y: xy.y - Math[series_name](xy.x),
     }))
   })
+  _series.taylor_series_error_periodic = _series.taylor_series.map(
+    (series, i) => {
+      return series.map((xy) => ({
+        x: xy.x,
+        y:
+          Math[series_name](xy.x) - _series.taylor(xy.x % (Math.PI * 2), i + 1),
+      }))
+    },
+  )
+
+  // truncating at y values as it seems to improve graph performance a bit
   _series.taylor_series.forEach((series, i) => {
     _series.taylor_series[i] = series.filter((xy) => xy.y < 4)
   })
@@ -161,9 +176,10 @@ const Chart = ({
   otherSeries = [],
   highlight,
   colors = COLORS,
+  y_domain = [-2, 2],
 }) => (
-  <VictoryChart padding={10} domain={{ y: [-2, 2] }}>
-    <VictoryLine data={mainSeries} />
+  <VictoryChart padding={10} domain={{ y: y_domain }}>
+    {mainSeries && <VictoryLine data={mainSeries} />}
     {otherSeries.map((line, i) => (
       <VictoryLine
         data={line}
@@ -221,6 +237,7 @@ const Charts = withConfig((props) => {
           ]}
           colors={[base_colors.red, _color]}
           highlight={1}
+          y_domain={[-1, 1]}
         />
         <LegendBox color="black">{series}(x)</LegendBox>
         <LegendBox color={_color}>
