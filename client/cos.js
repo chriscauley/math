@@ -62,8 +62,8 @@ const TermBox = ({ odd, n }) => (
   <span className="flex items-center" key={n}>
     <span className="mx-2">{odd ? '-' : '+'}</span>
     <div className="text-center">
-      x<sup>{2 * n}</sup>
-      <div className={denominator}>{2 * n} !</div>
+      x<sup>{n}</sup>
+      <div className={denominator}>{n} !</div>
     </div>
   </span>
 )
@@ -154,7 +154,7 @@ series_names.forEach((series_name) => {
   _series.taylor_series_error = _series.taylor_series.map((series) => {
     return series.map((xy) => ({
       x: xy.x,
-      y: xy.y - Math.cos(xy.x),
+      y: xy.y - Math[series_name](xy.x),
     }))
   })
   _series.taylor_series.forEach((series, i) => {
@@ -201,7 +201,7 @@ const Chart = ({
 
 const Charts = withConfig((props) => {
   const { highlight, terms, series } = props.config.formData || initial
-  const _color = COLORS[highlight]
+  const _color = COLORS[highlight % COLORS.length]
   return (
     <div className="flex flex-wrap">
       <div className="w-1/2">
@@ -236,7 +236,7 @@ const Charts = withConfig((props) => {
           T({highlight}) = {SERIES[series].series_formula[highlight]}
         </LegendBox>
         <LegendBox color={base_colors.red}>
-          {series}(x) - T({highlight}) (error)
+          {series}(x) - T({highlight})
         </LegendBox>
       </div>
     </div>
