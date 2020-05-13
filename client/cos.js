@@ -19,7 +19,7 @@ const base_colors = {
   purple: '#d23be7',
 }
 
-const colors = Object.values(base_colors)
+const COLORS = Object.values(base_colors)
 
 const uiSchema = {
   terms: {
@@ -68,11 +68,11 @@ const TermBox = ({ odd, n }) => (
   </span>
 )
 
-const LegendBox = ({ n, children }) => (
+const LegendBox = ({ color, n, children }) => (
   <div className="flex items-center">
     <span
       className="w-4 h-4 border-black inline-block mr-2"
-      style={{ background: colors[n % colors.length] }}
+      style={{ background: color || COLORS[n % COLORS.length] }}
     />
     {children}
   </div>
@@ -121,19 +121,22 @@ series_names.forEach((series_name) => {
   ))
 
   const series_children = []
+  _series.series_formula = []
   _series.series_legend = _series.terms.map((current_term, n) => {
     series_children.push(current_term)
+    const formula =
+      series_children.length > 5
+        ? ['...', ...series_children.slice(series_children.length - 5)]
+        : series_children.slice()
+    _series.series_formula.push(formula)
     return (
       <LegendBox n={n} key={n}>
-        {series_children.length > 5
-          ? ['...', ...series_children.slice(series_children.length - 5)]
-          : series_children.slice()}
+        {formula}
       </LegendBox>
     )
   })
 
   _series.perfect = xs.map((x) => ({ x, y: Math[series_name](x) }))
-
   _series.taylor_series = [_series.taylor_terms[0]]
 
   range(1, TERMS).forEach((n) => {
@@ -148,6 +151,12 @@ series_names.forEach((series_name) => {
     )
   })
 
+  _series.taylor_series_error = _series.taylor_series.map((series) => {
+    return series.map((xy) => ({
+      x: xy.x,
+      y: xy.y - Math.cos(xy.x),
+    }))
+  })
   _series.taylor_series.forEach((series, i) => {
     _series.taylor_series[i] = series.filter((xy) => xy.y < 4)
   })
@@ -156,7 +165,12 @@ series_names.forEach((series_name) => {
   })
 })
 
-const Chart = ({ mainSeries, otherSeries = [], highlight }) => (
+const Chart = ({
+  mainSeries,
+  otherSeries = [],
+  highlight,
+  colors = COLORS,
+}) => (
   <VictoryChart padding={10} domain={{ y: [-2, 2] }}>
     <VictoryLine data={mainSeries} />
     {otherSeries.map((line, i) => (
@@ -187,6 +201,7 @@ const Chart = ({ mainSeries, otherSeries = [], highlight }) => (
 
 const Charts = withConfig((props) => {
   const { highlight, terms, series } = props.config.formData || initial
+  const _color = COLORS[highlight]
   return (
     <div className="flex flex-wrap">
       <div className="w-1/2">
@@ -205,6 +220,25 @@ const Charts = withConfig((props) => {
         />
         {SERIES[series].series_legend[highlight]}
       </div>
+      <div className="w-1/2" />
+      <div className="w-1/2">
+        <Chart
+          mainSeries={SERIES[series].perfect}
+          otherSeries={[
+            SERIES[series].taylor_series_error[highlight],
+            SERIES[series].taylor_series[highlight],
+          ]}
+          colors={[base_colors.red, _color]}
+          highlight={1}
+        />
+        <LegendBox color="black">{series}(x)</LegendBox>
+        <LegendBox color={_color}>
+          T({highlight}) = {SERIES[series].series_formula[highlight]}
+        </LegendBox>
+        <LegendBox color={base_colors.red}>
+          {series}(x) - T({highlight}) (error)
+        </LegendBox>
+      </div>
     </div>
   )
 })
@@ -213,7 +247,7 @@ export default function Cos() {
   return (
     <div className="flex -mx-2 w-full">
       <div className="w-1/4 p-2">
-        <div className="m-2 p-2 border">
+        <div className="m-2 p-2 border sticky top-0">
           <withConfig.Form customButton={true} autosubmit={true} />
         </div>
       </div>
