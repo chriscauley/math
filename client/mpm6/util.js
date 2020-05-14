@@ -57,13 +57,11 @@ const reverseSearch = () => {
     const result = reverse(penultimate)
     if (result.turns > max_turns) {
       max_turns = result.turns
-      // console.log(result)
       best_result = result
     }
     const result2 = reverse(-penultimate)
     if (result2.turns > max_turns) {
       max_turns = result2.turns
-      // console.log(result2)
       best_result = result2
     }
   }
@@ -82,11 +80,36 @@ const test = ({ deposit1, deposit2 }) => {
   const final = last(balances)
 
   return {
+    key: `${deposit1},${deposit2}`,
     balances,
-    success: final !== 1e6,
+    success: final === 1e6,
     final,
     deposit1,
     deposit2,
+    datetime: new Date().valueOf(),
+  }
+}
+
+const search = ({ upper_bound, lower_bound }, store) => {
+  let tries = 0
+  let last_tick = 0
+  if (lower_bound > upper_bound) {
+    const temp = upper_bound
+    upper_bound = lower_bound
+    lower_bound = temp
+  }
+  const total = Math.pow(upper_bound - lower_bound, 2)
+  for (let deposit1 = lower_bound; deposit1 <= upper_bound + 1; deposit1++) {
+    for (let deposit2 = lower_bound; deposit2 <= upper_bound + 1; deposit2++) {
+      const result = test({ deposit1, deposit2 })
+      if (result.success) {
+        store.actions.saveResult(result)
+      }
+      if (tries / total - last_tick > 0.1) {
+        last_tick = tries / total
+      }
+      tries++
+    }
   }
 }
 
@@ -94,4 +117,5 @@ export default {
   reverse,
   reverseSearch,
   test,
+  search,
 }

@@ -5,7 +5,7 @@ import { HashRouter, Route } from 'react-router-dom'
 import Home from './Home'
 import Nav from './Nav'
 import Cos from './cos'
-import MPM6 from './mpm6'
+import { Step1, Step2 } from './mpm6'
 
 const App = () => {
   return (
@@ -15,7 +15,8 @@ const App = () => {
         <div className="app-content">
           <Route exact path="/" component={Home} />
           <Route exact path="/cos/" component={Cos} />
-          <Route exact path="/mpm6/" component={MPM6} />
+          <Route path="/mpm6/1/" component={Step1} />
+          <Route path="/mpm6/2/" component={Step2} />
         </div>
       </HashRouter>
     </>

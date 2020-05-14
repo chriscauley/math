@@ -31,8 +31,10 @@ const uiSchema = {
 const series_names = ['cos', 'sin']
 
 const initial = {
-  series: 'cos',
-  highlight: 0,
+  formData: {
+    series: 'cos',
+    highlight: 0,
+  },
 }
 
 const schema = {
@@ -211,7 +213,7 @@ const Chart = ({
 
 const Charts = withConfig((props) => {
   const row = 'flex flex-wrap border-b pb-4 mb-4'
-  const { highlight, series } = props.config.formData || initial
+  const { highlight, series } = props.config.formData
   const _color = COLORS[highlight % COLORS.length]
   if (!series) {
     return <h2 className={css.h2()}>Select a series</h2>
