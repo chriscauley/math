@@ -19,7 +19,12 @@ export const connect2 = ConfigHook('mpm6-1', {
   schema: search,
   uiSchema,
   actions: {
+    stop: (store) => {
+      clearTimeout(store.state.progress.timeout)
+      store.setState({ progress: null })
+    },
     onSave: (store, { formData }) => formData && util.search(formData, store),
+    setProgress: (store, progress) => store.setState({ progress }),
     saveResult: (store, result) => {
       const { results = {} } = store.state
       if (result.success && !results[result.key]) {

@@ -26,27 +26,8 @@ const reverse = (penultimate) => {
   }
 
   const deposit1 = today
-  const deposite2 = tomorrow - yesterday
-
-  const balances = [deposit1, deposit1 + deposite2]
-  let pass = false
-  for (let i2 = 0; i2 < MAX_TURNS + 2; i2++) {
-    const last_two = balances.slice(balances.length - 2)
-    balances.push(last_two[0] + last_two[1])
-    if (balances[balances.length - 1] === final) {
-      pass = true
-      break
-    }
-  }
-  if (!pass) {
-    throw 'WTF'
-  }
-  return {
-    turns,
-    balances,
-    deposit1,
-    deposite2,
-  }
+  const deposit2 = tomorrow - yesterday
+  return test(deposit1, deposit2)
 }
 
 const reverseSearch = () => {
@@ -81,6 +62,7 @@ const test = ({ deposit1, deposit2 }) => {
 
   return {
     key: `${deposit1},${deposit2}`,
+    turns: balances.length,
     balances,
     success: final === 1e6,
     final,
@@ -92,25 +74,41 @@ const test = ({ deposit1, deposit2 }) => {
 
 const search = ({ upper_bound, lower_bound }, store) => {
   let tries = 0
-  let last_tick = 0
+  let success = 0
+  let timeout
   if (lower_bound > upper_bound) {
     const temp = upper_bound
     upper_bound = lower_bound
     lower_bound = temp
   }
-  const total = Math.pow(upper_bound - lower_bound, 2)
-  for (let deposit1 = lower_bound; deposit1 <= upper_bound + 1; deposit1++) {
-    for (let deposit2 = lower_bound; deposit2 <= upper_bound + 1; deposit2++) {
-      const result = test({ deposit1, deposit2 })
-      if (result.success) {
-        store.actions.saveResult(result)
+  const total = Math.pow(upper_bound - lower_bound + 1, 2)
+  let deposit1 = lower_bound
+  let deposit2 = lower_bound
+  const next = () => {
+    clearTimeout(timeout)
+    if (deposit1 <= upper_bound) {
+      while (deposit2 <= upper_bound) {
+        const result = test({ deposit1, deposit2 })
+        tries++
+        deposit2++
+        if (result.success) {
+          store.actions.saveResult(result)
+          success += 1
+        }
       }
-      if (tries / total - last_tick > 0.1) {
-        last_tick = tries / total
-      }
-      tries++
+      deposit2 = lower_bound
+      deposit1++
+      timeout = setTimeout(next, 0)
     }
+    store.actions.setProgress({
+      completed: tries / total,
+      success,
+      deposit1,
+      deposit2,
+      timeout,
+    })
   }
+  next()
 }
 
 export default {

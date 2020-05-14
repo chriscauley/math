@@ -2,6 +2,7 @@ import { sortBy } from 'lodash'
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { connect1, connect2 } from './config'
+import { Dropdown } from '@unrest/core'
 import css from '@unrest/css'
 
 Object.assign(
@@ -27,26 +28,20 @@ const BalanceSheet = ({ result }) => {
   if (!result) {
     return 'Pick two deposite amounts to start'
   }
-  const rows = [
-    {
-      day: ' ',
-      balance: 'Balance',
-      deposit: 'Deposit',
-    },
-  ]
   let last = 0
   let last_diff = Infinity
-  result.balances.forEach((balance, i) => {
+  const rows = result.balances.map((balance, i) => {
     const diff = 1e6 - Math.abs(balance)
-    rows.push({
+    const row = {
       day: `Day ${i + 1}`,
       deposit: balance - last,
       balance,
       diff,
       divergent: Math.abs(last_diff) < Math.abs(diff),
-    })
+    }
     last = balance
     last_diff = diff
+    return row
   })
   return (
     <>
@@ -55,6 +50,12 @@ const BalanceSheet = ({ result }) => {
       </div>
       <div className={css.col6()}>
         <div className={css.sheet.list()}>
+          <div className={css.sheet.row()}>
+            <span className={css.sheet.day()}></span>
+            <span className="px-2">Deposit</span>
+            <span>Balance</span>
+            <span>Difference</span>
+          </div>
           {rows.map((r) => (
             <div
               key={r.day}
@@ -63,7 +64,7 @@ const BalanceSheet = ({ result }) => {
               <span className={css.sheet.day()}>{r.day}</span>
               <span className="px-2">{r.deposit}</span>
               <span>{money(r.balance)}</span>
-              <span>{money(r.distance)}</span>
+              <span>{money(r.diff)}</span>
               <span>{Math.abs(r.diff || 0)}</span>
             </div>
           ))}
@@ -73,14 +74,55 @@ const BalanceSheet = ({ result }) => {
   )
 }
 
+class ResultList extends React.Component {
+  state = {}
+  render() {
+    const { results } = this.props
+    const { result } = this.state
+    const result_list = sortBy(Object.values(results), 'datetime').map(
+      (result) => ({
+        children: result.key,
+        onClick: () => this.setState({ result }),
+      }),
+    )
+    return result ? (
+      <>
+        <Dropdown links={result_list}>
+          Select a different result
+        </Dropdown>
+        <BalanceSheet result={result} />
+      </>
+    ) : (
+      <div className={css.list.outer()}>
+        {result_list.map( result => (
+          <div key={result.children} className={css.list.action()} onClick={result.onClick}>{result.children}</div>
+        ))}
+      </div>
+    )
+  }
+}
+
 const SearchMatrix = (props) => {
-  const { results = {} } = props
-  const result_list = sortBy(Object.values(results), 'datetime')
+  const { results = {}, progress, actions } = props
   return (
-    <div>
-      {result_list.map((r) => (
-        <div key={r.key}>{r.key}</div>
-      ))}
+    <div className={css.col9()}>
+      <div className={css.row()}>
+        {progress && (
+          <div className={css.col6()}>
+            <div>Last checked: deposit1 = ${progress.deposit1}</div>
+            <div>{(progress.completed * 100).toFixed(1)} % Complete</div>
+            <div>Found {progress.success} results</div>
+            {progress.completed < 1 && (
+              <button className={css.button()} onClick={actions.stop}>
+                Stop
+              </button>
+            )}
+          </div>
+        )}
+        <div className={css.col6()}>
+          <ResultList results={results} />
+        </div>
+      </div>
     </div>
   )
 }
