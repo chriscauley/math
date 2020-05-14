@@ -1,5 +1,6 @@
 import React from 'react'
 import { range, sum } from 'lodash'
+import css from '@unrest/css'
 import ConfigHook from '@unrest/react-config-hook'
 import { VictoryLine, VictoryChart } from 'victory'
 
@@ -36,6 +37,7 @@ const initial = {
 
 const schema = {
   type: 'object',
+  required: ['series'],
   properties: {
     series: {
       type: 'string',
@@ -118,6 +120,7 @@ window.SERIES = SERIES
 
 series_names.forEach((series_name) => {
   const _series = SERIES[series_name]
+  _series.name = series_name
   _series.terms = range(TERMS).map((n) => _series.getTerm(n))
   _series.terms_legend = _series.terms.map((term, n) => (
     <LegendBox n={n} key={n}>
@@ -207,47 +210,59 @@ const Chart = ({
 )
 
 const Charts = withConfig((props) => {
+  const row = 'flex flex-wrap border-b pb-4 mb-4'
   const { highlight, series } = props.config.formData || initial
   const _color = COLORS[highlight % COLORS.length]
+  if (!series) {
+    return <h2 className={css.h2()}>Select a series</h2>
+  }
   return (
-    <div className="flex flex-wrap">
-      <div className="w-1/2">
-        <Chart
-          mainSeries={SERIES[series].perfect}
-          otherSeries={SERIES[series].taylor_terms}
-          highlight={highlight}
-        />
-        {SERIES[series].terms_legend[highlight]}
+    <>
+      <h2 className={css.h2()}>Taylor series for {series}</h2>
+      <div className={row}>
+        <div className="w-1/2">
+          <Chart
+            mainSeries={SERIES[series].perfect}
+            otherSeries={SERIES[series].taylor_terms}
+            highlight={highlight}
+          />
+        </div>
+        <div>{SERIES[series].terms_legend[highlight]}</div>
       </div>
-      <div className="w-1/2">
-        <Chart
-          mainSeries={SERIES[series].perfect}
-          otherSeries={SERIES[series].taylor_series}
-          highlight={highlight}
-        />
-        {SERIES[series].series_legend[highlight]}
+      <div className={row}>
+        <div className="w-1/2">
+          <Chart
+            mainSeries={SERIES[series].perfect}
+            otherSeries={SERIES[series].taylor_series}
+            highlight={highlight}
+          />
+        </div>
+        <div>{SERIES[series].series_legend[highlight]}</div>
       </div>
-      <div className="w-1/2" />
-      <div className="w-1/2">
-        <Chart
-          mainSeries={SERIES[series].perfect}
-          otherSeries={[
-            SERIES[series].taylor_series_error[highlight],
-            SERIES[series].taylor_series[highlight],
-          ]}
-          colors={[base_colors.red, _color]}
-          highlight={1}
-          y_domain={[-1, 1]}
-        />
-        <LegendBox color="black">{series}(x)</LegendBox>
-        <LegendBox color={_color}>
-          T({highlight}) = {SERIES[series].series_formula[highlight]}
-        </LegendBox>
-        <LegendBox color={base_colors.red}>
-          {series}(x) - T({highlight})
-        </LegendBox>
+      <div className={row}>
+        <div className="w-1/2">
+          <Chart
+            mainSeries={SERIES[series].perfect}
+            otherSeries={[
+              SERIES[series].taylor_series_error[highlight],
+              SERIES[series].taylor_series[highlight],
+            ]}
+            colors={[base_colors.red, _color]}
+            highlight={1}
+            y_domain={[-1, 1]}
+          />
+        </div>
+        <div>
+          <LegendBox color="black">{series}(x)</LegendBox>
+          <LegendBox color={_color}>
+            T({highlight}) = {SERIES[series].series_formula[highlight]}
+          </LegendBox>
+          <LegendBox color={base_colors.red}>
+            {series}(x) - T({highlight})
+          </LegendBox>
+        </div>
       </div>
-    </div>
+    </>
   )
 })
 
