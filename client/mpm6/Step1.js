@@ -24,7 +24,10 @@ export default connect1(function Step1(props) {
         </div>
       </div>
       <div className={css.grid.col9()}>
-        <BalanceSheet result={props.config.result} />
+        <BalanceSheet
+          result={props.config.result}
+          empty={'Pick two deposite amounts.'}
+        />
       </div>
     </div>
   )

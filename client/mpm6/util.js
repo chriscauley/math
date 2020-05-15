@@ -3,7 +3,7 @@ const MAX_BALANCE = 9007199254740991 / 2
 const MAX_TURNS = 100
 const TARGET = 1e6
 
-const reverse = (penultimate) => {
+const reverse = ({ penultimate }) => {
   let today = penultimate
   let tomorrow = TARGET
   let yesterday
@@ -27,7 +27,7 @@ const reverse = (penultimate) => {
 
   const deposit1 = today
   const deposit2 = tomorrow - yesterday
-  return test(deposit1, deposit2)
+  return test({ deposit1, deposit2 })
 }
 
 const reverseSearch = () => {

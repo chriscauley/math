@@ -1,9 +1,9 @@
 import React from 'react'
 import money from './money'
 
-export default function BalanceSheet({ result }) {
+export default function BalanceSheet({ result, empty }) {
   if (!result) {
-    return 'Pick two deposite amounts to start'
+    return <div className="p-4">{empty}</div>
   }
   let last = 0
   const rows = result.balances.map((balance, i) => {
