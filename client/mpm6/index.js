@@ -5,6 +5,8 @@ import { connect1, connect2 } from './config'
 import { Dropdown } from '@unrest/core'
 import css from '@unrest/css'
 
+const money = (num) => `${num < 0 ? '-' : ''}$${Math.abs(num)}`
+
 Object.assign(
   css,
   css.CSS({
@@ -36,7 +38,6 @@ const Navigation = ({ current }) => {
 }
 
 const BalanceSheet = ({ result }) => {
-  const money = (num) => `${num < 0 ? '-' : '+'} $${Math.abs(num)}`
   if (!result) {
     return 'Pick two deposite amounts to start'
   }
@@ -78,7 +79,7 @@ class ResultList extends React.Component {
     const { result } = this.state
     const result_list = sortBy(Object.values(results), 'datetime').map(
       (result) => ({
-        children: result.key,
+        children: `${result.turns} turns (${money(result.deposit1)}, ${money(result.deposit2)})`,
         onClick: () => this.setState({ result }),
       }),
     )
@@ -103,15 +104,11 @@ class ResultList extends React.Component {
   }
 }
 
-const ResultSumary = ({ result }) => {
-  return (
-    <div>
-      <div>{`${result.success ? 'Won' : 'Failed'} after ${
-        result.turns
-      } turns`}</div>
-    </div>
-  )
-}
+const ResultSummary = ({ success, turns }) => (
+  <div>
+    <div>{`${success ? 'Won' : 'Failed'} after ${turns} turns`}</div>
+  </div>
+)
 
 export const Step1 = connect1((props) => (
   <div className={css.row()}>
@@ -119,7 +116,7 @@ export const Step1 = connect1((props) => (
       <div className="border sticky top-0 p-4">
         <Navigation current={1} />
         <connect1.Form />
-        {props.config.result && <ResultSumary result={props.config.result} />}
+        {props.config.result && <ResultSummary result={props.config.result} />}
       </div>
     </div>
     <div className={css.col9()}>
