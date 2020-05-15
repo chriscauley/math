@@ -15,7 +15,7 @@ export const connect1 = ConfigHook('mpm6-1', {
   },
 })
 
-export const connect2 = ConfigHook('mpm6-1', {
+export const connect2 = ConfigHook('mpm6-2', {
   schema: search,
   uiSchema,
   actions: {
@@ -33,4 +33,10 @@ export const connect2 = ConfigHook('mpm6-1', {
       }
     },
   },
+})
+
+export const connect3 = ConfigHook('mpm6-3', {
+  schema: reverse,
+  uiSchema,
+  actions: {},
 })
