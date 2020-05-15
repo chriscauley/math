@@ -14,7 +14,7 @@ class ResultList extends React.Component {
   render() {
     const { results } = this.props
     const { result } = this.state
-    const result_list = sortBy(Object.values(results), 'datetime').map(
+    const result_list = sortBy(Object.values(results), 'turns').reverse().map(
       (result) => ({
         children: `${result.turns} turns (${money(result.deposit1)}, ${money(
           result.deposit2,
@@ -84,7 +84,7 @@ export const Step2 = connect2((props) => {
       <div className={css.grid.col3()}>
         <div className="border sticky top-0 p-4">
           <Navigation current={2} />
-          <connect2.Form className={progress && 'hidden'} />
+          <connect2.Form className={progress && progress.completed < 1 && 'hidden'} />
           {progress && <ProgressBox progress={progress} stop={actions.stop} />}
         </div>
       </div>
