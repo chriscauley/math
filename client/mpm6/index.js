@@ -17,11 +17,23 @@ Object.assign(
   }),
 )
 
-css.sheet = css.CSS({
-  list: 'border-b',
-  row: 'p-4 border border-b-0 flex flex-wrap justify-between',
-  day: 'text-gray-400 w-16',
-})
+const Navigation = ({ current }) => {
+  const max = 4
+  return (
+    <div className="flex justify-between pb-4 mb-4">
+      {current !== 0 && (
+        <Link to={`/mpm6/${current - 1}/`} className={css.link()}>
+          Last Step
+        </Link>
+      )}
+      {current < max && (
+        <Link to={`/mpm6/${current + 1}/`} className={css.link()}>
+          Next Step
+        </Link>
+      )}
+    </div>
+  )
+}
 
 const BalanceSheet = ({ result }) => {
   const money = (num) => `${num < 0 ? '-' : '+'} $${Math.abs(num)}`
@@ -29,48 +41,33 @@ const BalanceSheet = ({ result }) => {
     return 'Pick two deposite amounts to start'
   }
   let last = 0
-  let last_diff = Infinity
   const rows = result.balances.map((balance, i) => {
     const diff = 1e6 - Math.abs(balance)
-    const row = {
-      day: `Day ${i + 1}`,
-      deposit: balance - last,
-      balance,
-      diff,
-      divergent: Math.abs(last_diff) < Math.abs(diff),
-    }
+    const row = [`Day ${i + 1}`, money(balance - last), money(balance), diff]
     last = balance
-    last_diff = diff
     return row
   })
+
   return (
-    <>
-      <div className={css.col3()}>
-        <div className="sticky top-0 pt-4">Result...</div>
-      </div>
-      <div className={css.col6()}>
-        <div className={css.sheet.list()}>
-          <div className={css.sheet.row()}>
-            <span className={css.sheet.day()}></span>
-            <span className="px-2">Deposit</span>
-            <span>Balance</span>
-            <span>Difference</span>
-          </div>
-          {rows.map((r) => (
-            <div
-              key={r.day}
-              className={css.sheet.row({ 'bg-red-100': r.divergent })}
-            >
-              <span className={css.sheet.day()}>{r.day}</span>
-              <span className="px-2">{r.deposit}</span>
-              <span>{money(r.balance)}</span>
-              <span>{money(r.diff)}</span>
-              <span>{Math.abs(r.diff || 0)}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </>
+    <table className={`balance-sheet ${result.success ? 'success' : 'fail'}`}>
+      <thead>
+        <tr>
+          <td></td>
+          <td>Deposit</td>
+          <td>Balance</td>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr key={r[0]}>
+            <td>{r[0]}</td>
+            <td>{r[1]}</td>
+            <td>{r[2]}</td>
+            <td>{r[3]}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   )
 }
 
@@ -87,64 +84,77 @@ class ResultList extends React.Component {
     )
     return result ? (
       <>
-        <Dropdown links={result_list}>
-          Select a different result
-        </Dropdown>
+        <Dropdown links={result_list}>Select a different result</Dropdown>
         <BalanceSheet result={result} />
       </>
     ) : (
       <div className={css.list.outer()}>
-        {result_list.map( result => (
-          <div key={result.children} className={css.list.action()} onClick={result.onClick}>{result.children}</div>
+        {result_list.map((result) => (
+          <div
+            key={result.children}
+            className={css.list.action()}
+            onClick={result.onClick}
+          >
+            {result.children}
+          </div>
         ))}
       </div>
     )
   }
 }
 
-const SearchMatrix = (props) => {
-  const { results = {}, progress, actions } = props
+const ResultSumary = ({ result }) => {
   return (
-    <div className={css.col9()}>
-      <div className={css.row()}>
-        {progress && (
-          <div className={css.col6()}>
-            <div>Last checked: deposit1 = ${progress.deposit1}</div>
-            <div>{(progress.completed * 100).toFixed(1)} % Complete</div>
-            <div>Found {progress.success} results</div>
-            {progress.completed < 1 && (
-              <button className={css.button()} onClick={actions.stop}>
-                Stop
-              </button>
-            )}
-          </div>
-        )}
-        <div className={css.col6()}>
-          <ResultList results={results} />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-const BaseStep = (props) => {
-  const { Form } = props.config
-  return (
-    <div className={css.row()}>
-      <div className={css.col3()}>
-        <Form
-          className="border sticky top-0 p-4"
-          after={<Link to={`/mpm6/${props.step + 1}/`}>Next Step</Link>}
-        />
-      </div>
-      <props.InnerComponent {...props.config} />
+    <div>
+      <div>{`${result.success ? 'Won' : 'Failed'} after ${
+        result.turns
+      } turns`}</div>
     </div>
   )
 }
 
 export const Step1 = connect1((props) => (
-  <BaseStep InnerComponent={BalanceSheet} {...props} step={1} />
+  <div className={css.row()}>
+    <div className={css.col3()}>
+      <div className="border sticky top-0 p-4">
+        <Navigation current={1} />
+        <connect1.Form />
+        {props.config.result && <ResultSumary result={props.config.result} />}
+      </div>
+    </div>
+    <div className={css.col9()}>
+      <BalanceSheet result={props.config.result} />
+    </div>
+  </div>
 ))
-export const Step2 = connect2((props) => (
-  <BaseStep InnerComponent={SearchMatrix} {...props} step={2} />
-))
+
+const ProgressBox = ({ progress, stop }) => (
+  <div>
+    <div>Last checked: deposit1 = ${progress.deposit1}</div>
+    <div>{(progress.completed * 100).toFixed(1)} % Complete</div>
+    <div>Found {progress.success} results</div>
+    {progress.completed < 1 && (
+      <button className={css.button()} onClick={stop}>
+        Stop
+      </button>
+    )}
+  </div>
+)
+
+export const Step2 = connect2((props) => {
+  const { progress, actions, results } = props.config
+  return (
+    <div className={css.row()}>
+      <div className={css.col3()}>
+        <div className="border sticky top-0 p-4">
+          <Navigation current={2} />
+          <connect2.Form className={progress && 'hidden'} />
+          {progress && <ProgressBox progress={progress} stop={actions.stop} />}
+        </div>
+      </div>
+      <div className={css.col9()}>
+        {results && <ResultList results={results} />}
+      </div>
+    </div>
+  )
+})

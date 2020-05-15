@@ -1,0 +1,21 @@
+.balance-sheet {
+  @apply w-full max-w-xl;
+  thead {
+    @apply font-bold text-center;
+  }
+  tr {
+    @apply border;
+  }
+  td {
+    @apply p-4 text-center;
+    &:first-child {
+      @apply text-gray-600 text-left;
+    }
+  }
+  &.success tbody tr:last-child {
+    @apply border-green-600 border-2;
+  }
+  &.fail tbody tr:last-child {
+    @apply border-red-600 border-2;
+  }
+}

@@ -1,11 +1,11 @@
 import { last } from 'lodash'
 const MAX_BALANCE = 9007199254740991 / 2
 const MAX_TURNS = 100
-const final = 1e6
+const TARGET = 1e6
 
 const reverse = (penultimate) => {
   let today = penultimate
-  let tomorrow = final
+  let tomorrow = TARGET
   let yesterday
 
   const r_balances = [tomorrow, today]
@@ -52,19 +52,28 @@ const reverseSearch = () => {
 const test = ({ deposit1, deposit2 }) => {
   const balances = [deposit1, deposit2 + deposit1]
   let turns = MAX_TURNS
-  while (balances[balances.length - 1] !== 1e6 && turns) {
+  while (balances[balances.length - 1] !== TARGET && turns) {
     const last_two = balances.slice(balances.length - 2)
     balances.push(last_two[0] + last_two[1])
     turns--
   }
 
   const final = last(balances)
+  const success = final === TARGET
+  if (!success) {
+    while (balances.length > 2) {
+      if (balances[balances.length - 2] < TARGET) {
+        break
+      }
+      balances.pop()
+    }
+  }
 
   return {
     key: `${deposit1},${deposit2}`,
     turns: balances.length,
     balances,
-    success: final === 1e6,
+    success,
     final,
     deposit1,
     deposit2,
