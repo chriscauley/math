@@ -1,9 +1,28 @@
 import React from 'react'
 import css from '@unrest/css'
+import ConfigHook from '@unrest/react-config-hook'
 
-import { connect1 } from './config'
 import BalanceSheet from './BalanceSheet'
 import Navigation from './Navigation'
+import util from './util'
+
+const schema = {
+  type: 'object',
+  properties: {
+    deposit1: { type: 'integer' },
+    deposit2: { type: 'integer' },
+  },
+  required: ['deposit1', 'deposit2'],
+}
+
+export const connect = ConfigHook('mpm6-1', {
+  schema,
+  actions: {
+    onSave: (store, { formData }) => {
+      formData && store.actions.save({ result: util.test(formData) })
+    },
+  },
+})
 
 const ResultSummary = ({ success, turns }) => (
   <div>
@@ -11,13 +30,13 @@ const ResultSummary = ({ success, turns }) => (
   </div>
 )
 
-export default connect1(function Step1(props) {
+export default connect(function Step1(props) {
   return (
     <div className={css.grid.row()}>
       <div className={css.grid.col3()}>
         <div className="border sticky top-0 p-4">
           <Navigation current={1} />
-          <connect1.Form />
+          <connect.Form />
           {props.config.result && (
             <ResultSummary result={props.config.result} />
           )}

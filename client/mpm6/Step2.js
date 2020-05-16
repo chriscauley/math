@@ -2,12 +2,40 @@ import React from 'react'
 import { sortBy } from 'lodash'
 import { Dropdown } from '@unrest/core'
 import css from '@unrest/css'
+import ConfigHook from '@unrest/react-config-hook'
 
-import { connect2 } from './config'
 import BalanceSheet from './BalanceSheet'
 import Navigation from './Navigation'
+import money from './money'
+import util from './util'
 
-const money = (num) => `${num < 0 ? '-' : ''}$${Math.abs(num)}`
+const schema = {
+  type: 'object',
+  properties: {
+    lower_bound: { type: 'integer' },
+    upper_bound: { type: 'integer' },
+  },
+  required: ['upper_bound', 'lower_bound'],
+}
+
+export const connect = ConfigHook('mpm6-2', {
+  schema,
+  actions: {
+    stop: (store) => {
+      clearTimeout(store.state.progress.timeout)
+      store.setState({ progress: null })
+    },
+    onSave: (store, { formData }) => formData && util.search(formData, store),
+    setProgress: (store, progress) => store.setState({ progress }),
+    saveResult: (store, result) => {
+      const { results = {} } = store.state
+      if (result.success && !results[result.key]) {
+        results[result.key] = result
+        store.actions.save({ results })
+      }
+    },
+  },
+})
 
 class ResultList extends React.Component {
   state = {}
@@ -56,14 +84,14 @@ const ProgressBox = ({ progress, stop }) => (
   </div>
 )
 
-export default connect2((props) => {
+export default connect((props) => {
   const { progress, actions, results } = props.config
   return (
     <div className={css.grid.row()}>
       <div className={css.grid.col3()}>
         <div className="border sticky top-0 p-4">
           <Navigation current={2} />
-          <connect2.Form
+          <connect.Form
             className={progress && progress.completed < 1 && 'hidden'}
           />
           {progress && <ProgressBox progress={progress} stop={actions.stop} />}
