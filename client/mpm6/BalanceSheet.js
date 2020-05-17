@@ -28,7 +28,6 @@ export default function BalanceSheet({ result, empty }) {
             <td>{r[0]}</td>
             <td>{r[1]}</td>
             <td>{r[2]}</td>
-            <td>{r[3]}</td>
           </tr>
         ))}
       </tbody>
