@@ -1,11 +1,11 @@
 import React from 'react'
-import { sortBy } from 'lodash'
 import { Dropdown } from '@unrest/core'
 import css from '@unrest/css'
 import ConfigHook from '@unrest/react-config-hook'
 
-import BalanceSheet from './BalanceSheet'
+import ResultList from './ResultList'
 import Navigation from './Navigation'
+import ProgressBox from './ProgressBox'
 import money from './money'
 import util from './util'
 
@@ -37,51 +37,11 @@ export const connect = ConfigHook('mpm6-2', {
   },
 })
 
-class ResultList extends React.Component {
-  state = {}
-  render() {
-    const { results } = this.props
-    const { result } = this.state
-    const result_list = sortBy(Object.values(results), 'turns')
-      .reverse()
-      .map((result) => ({
-        children: `${result.turns} turns (${money(result.deposit1)}, ${money(
-          result.deposit2,
-        )})`,
-        onClick: () => this.setState({ result }),
-      }))
-    return result ? (
-      <>
-        <Dropdown links={result_list}>Select a different result</Dropdown>
-        <BalanceSheet result={result} />
-      </>
-    ) : (
-      <div className={css.list.outer()}>
-        {result_list.map((result) => (
-          <div
-            key={result.children}
-            className={css.list.action()}
-            onClick={result.onClick}
-          >
-            {result.children}
-          </div>
-        ))}
-      </div>
-    )
-  }
-}
-
-const ProgressBox = ({ progress, stop }) => (
-  <div>
-    <div>Last checked: deposit1 = ${progress.deposit1}</div>
-    <div>{(progress.completed * 100).toFixed(1)} % Complete</div>
+const ProgressInner = ({progress}) => (
+  <>
+    <div>Last checked: deposit1 = {money(progress.deposit1)}</div>
     <div>Found {progress.success} results</div>
-    {progress.completed < 1 && (
-      <button className={css.button()} onClick={stop}>
-        Stop
-      </button>
-    )}
-  </div>
+  </>
 )
 
 export default connect((props) => {
@@ -94,7 +54,13 @@ export default connect((props) => {
           <connect.Form
             className={progress && progress.completed < 1 && 'hidden'}
           />
-          {progress && <ProgressBox progress={progress} stop={actions.stop} />}
+          {progress && (
+            <ProgressBox
+              inner={<ProgressInner progress={progress}/>}
+              progress={progress}
+              stop={actions.stop}
+            />
+          )}
         </div>
       </div>
       <div className={css.grid.col9()}>
