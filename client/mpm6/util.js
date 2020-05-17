@@ -30,23 +30,45 @@ const reverse = ({ penultimate }) => {
   return test({ deposit1, deposit2 })
 }
 
-const reverseSearch = () => {
-  const PENULTIMATE_MAX = 10000000
-  let max_turns = 0
-  let best_result
-  for (let penultimate = 1; penultimate < PENULTIMATE_MAX; penultimate++) {
-    const result = reverse(penultimate)
-    if (result.turns > max_turns) {
-      max_turns = result.turns
-      best_result = result
+const reverseSearch = ({ upper_bound, lower_bound }, store) => {
+  let current = lower_bound - 1
+  let tries = 0
+  let best_result = { turns: 0 }
+  let timeout
+  const start = new Date().valueOf()
+  const total = upper_bound - lower_bound + 1
+  const step = 1e5
+  const next = () => {
+    clearTimeout(timeout)
+
+    // randomizing target slightly just makes the progress meter look more organic
+    const target = current + step + Math.random() * 1000
+    while (current <= target && current < upper_bound) {
+      current++
+      tries++
+      const result = reverse({ penultimate: current })
+
+      // all results pass, choosing which one's to keep will be left to saveResult
+      if (result.turns > best_result.turns) {
+        best_result = result
+      }
     }
-    const result2 = reverse(-penultimate)
-    if (result2.turns > max_turns) {
-      max_turns = result2.turns
-      best_result = result2
+    if (current < upper_bound) {
+      timeout = setTimeout(next, 0)
     }
+    store.actions.setProgress({
+      progress: {
+        start,
+        now: new Date().valueOf(),
+        completed: tries / total,
+        success: tries,
+        current,
+        timeout,
+      },
+      best_result,
+    })
   }
-  test(best_result)
+  next()
 }
 
 const test = ({ deposit1, deposit2 }) => {
@@ -78,6 +100,7 @@ const test = ({ deposit1, deposit2 }) => {
     deposit1,
     deposit2,
     datetime: new Date().valueOf(),
+    penultimate: balances[balances.length - 2],
   }
 }
 
@@ -85,6 +108,7 @@ const search = ({ upper_bound, lower_bound }, store) => {
   let tries = 0
   let success = 0
   let timeout
+  const start = new Date().valueOf()
   if (lower_bound > upper_bound) {
     const temp = upper_bound
     upper_bound = lower_bound
@@ -111,6 +135,8 @@ const search = ({ upper_bound, lower_bound }, store) => {
     }
     store.actions.setProgress({
       completed: tries / total,
+      start,
+      now: new Date().valueOf(),
       success,
       deposit1,
       deposit2,

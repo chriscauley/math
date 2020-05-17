@@ -2,15 +2,20 @@ import React from 'react'
 import css from '@unrest/css'
 
 export default function({ progress, stop, inner }) {
+  const { start, now, completed, success } = progress
+  const elapsed = (now - start) / 1000
+  const estimated = elapsed / completed
   return (
     <div>
       {inner}
-      <div>{(progress.completed * 100).toFixed(1)} % Complete</div>
-      <div>Found {progress.success} results</div>
-      {progress.completed < 1 && (
-        <button className={css.button()} onClick={stop}>
-          Stop
-        </button>
+      <div>{(completed * 100).toFixed(1)} % Complete</div>
+      {completed < 1 && (
+        <>
+          <div>{elapsed}s / {Math.round(estimated)}s</div>
+          <button className={css.button()} onClick={stop}>
+            Stop
+          </button>
+        </>
       )}
     </div>
   )

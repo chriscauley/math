@@ -37,7 +37,7 @@ export const connect = ConfigHook('mpm6-2', {
   },
 })
 
-const ProgressInner = ({progress}) => (
+const ProgressInner = ({ progress }) => (
   <>
     <div>Last checked: deposit1 = {money(progress.deposit1)}</div>
     <div>Found {progress.success} results</div>
@@ -56,7 +56,7 @@ export default connect((props) => {
           />
           {progress && (
             <ProgressBox
-              inner={<ProgressInner progress={progress}/>}
+              inner={<ProgressInner progress={progress} />}
               progress={progress}
               stop={actions.stop}
             />

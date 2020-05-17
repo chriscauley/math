@@ -9,8 +9,8 @@ import money from './money'
 export default class ResultList extends React.Component {
   state = {}
   render() {
-    const select = result => () => this.setState({result})
-    const { results=[] } = this.props
+    const select = (result) => () => this.setState({ result })
+    const { results = [] } = this.props
     const { result } = this.state
     const result_list = sortBy(Object.values(results), 'turns')
       .reverse()
@@ -21,12 +21,14 @@ export default class ResultList extends React.Component {
         onClick: select(result),
       }))
     if (!result_list.length) {
-      return "Choose two values to search between"
+      return 'Choose two values to search between'
     }
 
     return result ? (
       <>
-        <div className={css.link('mb-4')} onClick={select(null)}>{"<< Result List"}</div>
+        <div className={css.link('mb-4')} onClick={select(null)}>
+          {'<< Result List'}
+        </div>
         <BalanceSheet result={result} />
       </>
     ) : (
