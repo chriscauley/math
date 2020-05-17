@@ -15,12 +15,6 @@ const schema = {
   required: ['upper_bound', 'lower_bound'],
 }
 
-const actions = {
-  onSave(store, { formData }) {
-    formData && store.actions.save({ result: util.reverse(formData) })
-  },
-}
-
 // copied from step 2, not sure if should be generalized
 export const connect = ConfigHook('mpm6-4', {
   schema,

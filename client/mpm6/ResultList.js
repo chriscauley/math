@@ -1,6 +1,5 @@
 import React from 'react'
 import { sortBy } from 'lodash'
-import { Dropdown } from '@unrest/core'
 import css from '@unrest/css'
 
 import BalanceSheet from './BalanceSheet'

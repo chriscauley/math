@@ -1,5 +1,4 @@
 import React from 'react'
-import { Dropdown } from '@unrest/core'
 import css from '@unrest/css'
 import ConfigHook from '@unrest/react-config-hook'
 
