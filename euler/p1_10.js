@@ -1,4 +1,5 @@
 const {range } = require('lodash')
+const data = require('./data')
 
 const test = (a, b) => {
   if (a !== b) {
@@ -178,7 +179,20 @@ const p7 = target => {
   return cache_primes(2e5)[target]
 }
 
-console.log(cache_primes(5e5))
+const p8 = target => {
+  let max = 0
+  const numbers = data.p8.split('').map(n => parseInt(n))
+  for (var i=0;i<data.p8.length;i++) {
+    let prod = 1
+    for (var i2=i;i2<i+target;i2++) {
+      prod *= numbers[i2]
+    }
+    if (prod > max) {
+      max = prod
+    }
+  }
+  return max
+}
 
 module.exports = {
   p1: () => test(p1(1000), 233168),
@@ -188,6 +202,7 @@ module.exports = {
   p5: () => test(p5(20), 232792560),
   p6: () => test(p6(100), 25164150),
   p7: () => test(p7(10001), 104743),
+  p8: () => test(p8(13), 23514624000),
   test: {
     p1: () => test(p1(10), 23),
     p2: () => test(p2(90), 2 + 8 + 34),
@@ -196,5 +211,6 @@ module.exports = {
     p5: () => test(p5(10), 2520),
     p6: () => test(p6(10), 2640),
     p7: () => test(p7(6), 13),
+    p8: () => test(p8(4), 5832),
   }
 }
