@@ -134,8 +134,16 @@ Geo.fromPairs = (xys, values) => {
   return { geo, board: geo.makeBoard(xys, values) }
 }
 
+const assert = (bool, exception) => {
+  if (!bool) {
+    throw exception
+  }
+}
+
 // eslint-disable-next-line
 module.exports.default = {
   alphabetti,
+  alphabet: alphabetti.slice(0,26),
   Geo,
+  assert
 }
