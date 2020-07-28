@@ -145,5 +145,6 @@ module.exports.default = {
   alphabetti,
   alphabet: alphabetti.slice(0,26),
   Geo,
-  assert
+  assert,
+  mod
 }
