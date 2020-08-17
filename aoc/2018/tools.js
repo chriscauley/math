@@ -85,9 +85,9 @@ const Look = (geo) => {
 
 const Geo = (x0, x_max, y0, y_max) => {
   if (y0 === undefined) {
+    y_max = x_max
     x_max = x0
     x0 = 0
-    y_max = y0
     y0 = 0
   }
 
@@ -99,13 +99,17 @@ const Geo = (x0, x_max, y0, y_max) => {
     y0,
     W,
     H,
+    AREA: W * H,
     dindexes: [-W, 1, W, -1],
     i2xy: (i) => [mod(i, W), Math.floor(i / W)],
     xy2i: (xy) => xy[0] + xy[1] * W,
-    print(board) {
-      range(H).forEach((y) => {
+    print(board, {from_xy=[x0,y0], to_xy=[x_max, y_max], delimiter=' '}) {
+      const xs = range(from_xy[0], to_xy[0]+1)
+      const ys = range(from_xy[1], to_xy[1]+1)
+      ys.forEach((y) => {
+        const row = xs.map((x) => board[this.xy2i([x, y])]).map(s => s=== undefined ? ' ' : s)
         // eslint-disable-next-line
-        console.log(range(W).map((x) => board[this.xy2i([x - x0, y - y0])] || ' ').join(''))
+        console.log(row.join(delimiter))
       })
     },
     makeBoard(xys, values = []) {
@@ -117,6 +121,26 @@ const Geo = (x0, x_max, y0, y_max) => {
     },
     inBounds(xy) {
       return xy[0] >= x0 && xy[0] < x0 + W && xy[1] >= y0 && xy[1] < y0 + H
+    },
+    eachXY(f) {
+      range(x0, x_max+1).forEach(
+        x => range(y0, y_max+1).forEach(
+          y => f([x,y])
+        )
+      )
+    },
+    slice(board, xy, W, H, _default) {
+      const out = []
+      const ys = range(xy[1], xy[1] + H)
+      range(xy[0], xy[0]+W).forEach(
+        x => ys.forEach(
+          y => {
+            const v = board[geo.xy2i([x,y])]
+            out.push(v === undefined ? _default : v)
+          }
+        )
+      )
+      return out
     },
   }
   geo.look = Look(geo)
@@ -140,11 +164,35 @@ const assert = (bool, exception) => {
   }
 }
 
+const log = (...args) => {
+  if (process.argv.includes('-v')) {
+    console.log(...args)
+  }
+}
+
+const answer = (text, value, expected) => {
+  if (expected !== undefined) {
+    assert(value === expected, `Bad answer for ${text}, ${value} !== ${expected}`)
+  }
+  console.log(text, value)
+}
+
 // eslint-disable-next-line
-module.exports.default = {
+module.exports = {
   alphabetti,
   alphabet: alphabetti.slice(0,26),
   Geo,
   assert,
+  log,
+  answer,
   mod
 }
+
+const test = () => {
+  const geo = Geo(-5,5,-5,5)
+  const board = {}
+  geo.eachXY((xy) => board[geo.xy2i(xy)] = xy[1])
+  geo.print(board, {delimiter:'\t'})
+}
+
+//test()
