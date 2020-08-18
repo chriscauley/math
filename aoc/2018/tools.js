@@ -99,11 +99,13 @@ const Geo = (x0, x_max, y0, y_max) => {
     y0,
     W,
     H,
+    xys: [],
+    indexes: [],
     AREA: W * H,
     dindexes: [-W, 1, W, -1],
     i2xy: (i) => [mod(i, W), Math.floor(i / W)],
     xy2i: (xy) => xy[0] + xy[1] * W,
-    print(board, {from_xy=[x0,y0], to_xy=[x_max, y_max], delimiter=' '}) {
+    print(board, {from_xy=[x0,y0], to_xy=[x_max, y_max], delimiter=' '}={}) {
       const xs = range(from_xy[0], to_xy[0]+1)
       const ys = range(from_xy[1], to_xy[1]+1)
       ys.forEach((y) => {
@@ -123,6 +125,7 @@ const Geo = (x0, x_max, y0, y_max) => {
       return xy[0] >= x0 && xy[0] < x0 + W && xy[1] >= y0 && xy[1] < y0 + H
     },
     eachXY(f) {
+      console.warn('eachXY is depracated, use geo.xys.forEach instead')
       range(x0, x_max+1).forEach(
         x => range(y0, y_max+1).forEach(
           y => f([x,y])
@@ -143,8 +146,60 @@ const Geo = (x0, x_max, y0, y_max) => {
       return out
     },
   }
+
+  range(x0, x_max+1).forEach(
+    x => range(y0, y_max+1).forEach(
+      y => {
+        const xy = [x,y]
+        geo.xys.push()
+        geo.indexes.push(geo.xy2i(xy))
+      }
+    )
+  )
+
   geo.look = Look(geo)
   return geo
+}
+
+const SumTable = (geo, board) => {
+  const sum_table = {
+    getSum: (from_xy, WH) => {
+      const x0 = from_xy[0]-1
+      const y0 = from_xy[1]-1
+      const x1 = x0 + WH[0]
+      const y1 = y0 + WH[1]
+      let A = sum_table[geo.xy2i([x0, y0])]
+      let B = sum_table[geo.xy2i([x1, y0])]
+      let C = sum_table[geo.xy2i([x0, y1])]
+      const D = sum_table[geo.xy2i([x1, y1])]
+      if (x0 < geo.x0) {
+        A = 0
+        C = 0
+      }
+      if (y0 < geo.y0) {
+        A = 0
+        B = 0
+      }
+      return D-B-C+A
+    }
+  }
+  const row_sums = {}
+  geo.eachXY(xy => {
+    const i = geo.xy2i(xy)
+    if (xy[0] === geo.x0) {
+      row_sums[i] = board[i]
+    } else {
+      row_sums[i] = row_sums[i-1] + board[i]
+    }
+  })
+  geo.eachXY(xy => {
+    const i = geo.xy2i(xy)
+    sum_table[i] = row_sums[i]
+    if (xy[1] !== geo.y0) {
+      sum_table[i] += sum_table[i-geo.W]
+    }
+  })
+  return sum_table
 }
 
 Geo.fromPairs = (xys, values) => {
@@ -182,17 +237,31 @@ module.exports = {
   alphabetti,
   alphabet: alphabetti.slice(0,26),
   Geo,
+  SumTable,
   assert,
   log,
   answer,
-  mod
+  mod,
 }
 
 const test = () => {
   const geo = Geo(-5,5,-5,5)
   const board = {}
+
   geo.eachXY((xy) => board[geo.xy2i(xy)] = xy[1])
+  console.log('printing -5...+5 board')
   geo.print(board, {delimiter:'\t'})
+
+  geo.eachXY((xy) => board[geo.xy2i(xy)] = 1)
+  console.log('printing sum_table of all 1s (same geo)')
+  const sum_table = SumTable(geo, board)
+  geo.print(sum_table, {delimiter: '\t'})
+  answer('sum of 9 cells', sum_table.getSum([-5,-5], [3,3]), 9)
+  answer('sum of 4 cells', sum_table.getSum([-4,-4], [2, 2]), 4)
+  answer('sum of 4 tall cells', sum_table.getSum([-4,-4], [1, 4]), 4)
+  answer('sum of 4 wide cells', sum_table.getSum([-4,-4], [4, 1]), 4)
 }
 
-//test()
+if (require.main === module) {
+  test()
+}
