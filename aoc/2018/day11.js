@@ -1,5 +1,5 @@
 const { range, sum } = require('lodash')
-const { Geo, assert, log, answer } = require('./tools')
+const { Geo, SumTable, assert, log, answer } = require('./tools')
 
 const test1a = 18
 const test1b = 42
@@ -39,6 +39,26 @@ const find_max_sum = (geo, board, size=3) => {
   return { max_sum, max_xy }
 }
 
+const find_max_sum_table = (geo, sum_table, size) => {
+  const WH = [size, size]
+  const sums = []
+  const xys = []
+  const x_max = geo.x0 + geo.W - size
+  const y_max = geo.y0 + geo.H - size
+
+  for (let x=geo.x0;x<=x_max;x++) {
+    for (let y=geo.y0;y<=y_max;y++) {
+      const xy = [x, y]
+      sums.push(sum_table.getSum(xy, WH))
+      xys.push(xy)
+    }
+  }
+
+  const max_sum = Math.max(...sums)
+  const max_xy = xys[sums.indexOf(max_sum)]
+  return { max_sum, max_xy }
+}
+
 const main = (input, part=1) => {
   const size = 300
   const geo = Geo(1, size, 1, size)
@@ -58,9 +78,21 @@ const main = (input, part=1) => {
   const max_sums = []
   const max_xys = []
   const sizes = []
-  range(4, 20).forEach(size => {
-    log(size, '/', 300)
-    const { max_sum, max_xy } = find_max_sum(geo, board, size)
+  // old method ~28s
+  // range(4, 30).forEach(size => {
+  //   log(size, '/', 300)
+  //   const { max_sum, max_xy } = find_max_sum(geo, board, size)
+  //   max_sums.push(max_sum)
+  //   max_xys.push(max_xy)
+  //   sizes.push(size)
+  // })
+
+  // new method: sum table ~0.6s
+  const sum_table = SumTable(geo, board)
+  const o = { delimiter: '\t', from_xy: [1,1], to_xy: [6,6]}
+
+  range(4, 30).forEach((size, i_size) => {
+    const { max_sum, max_xy } = find_max_sum_table(geo, sum_table, size)
     max_sums.push(max_sum)
     max_xys.push(max_xy)
     sizes.push(size)
