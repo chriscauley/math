@@ -2,6 +2,7 @@ const { range } = require('lodash')
 const alphabetti = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split(
   '',
 )
+const alphanum = '0123456789abcdefghijklmnopqrstuvqxwyz'
 
 const mod = (n, d) => ((n % d) + d) % d
 
@@ -105,13 +106,13 @@ const Geo = (x0, x_max, y0, y_max) => {
     dindexes: [-W, 1, W, -1],
     i2xy: (i) => [mod(i, W), Math.floor(i / W)],
     xy2i: (xy) => xy[0] + xy[1] * W,
-    print(board, {from_xy=[x0,y0], to_xy=[x_max, y_max], delimiter=' '}={}) {
+    print(board, {from_xy=[x0,y0], to_xy=[x_max, y_max], delimiter=' ',empty=' ', extras=[]}={}) {
       const xs = range(from_xy[0], to_xy[0]+1)
       const ys = range(from_xy[1], to_xy[1]+1)
       ys.forEach((y) => {
-        const row = xs.map((x) => board[this.xy2i([x, y])]).map(s => s=== undefined ? ' ' : s)
+        const row = xs.map((x) => board[this.xy2i([x, y])]).map(s => s=== undefined ? empty : s)
         // eslint-disable-next-line
-        console.log(row.join(delimiter))
+        console.log(row.join(delimiter),'  ', extras[y] || '')
       })
     },
     makeBoard(xys, values = []) {
@@ -220,10 +221,12 @@ const assert = (bool, exception) => {
 }
 
 const log = (...args) => {
-  if (process.argv.includes('-v')) {
+  if (log.isOn()) {
     console.log(...args)
   }
 }
+
+log.isOn = () => process.argv.includes('-v')
 
 const answer = (text, value, expected) => {
   if (expected !== undefined) {
@@ -236,6 +239,7 @@ const answer = (text, value, expected) => {
 module.exports = {
   alphabetti,
   alphabet: alphabetti.slice(0,26),
+  alphanum,
   Geo,
   SumTable,
   assert,
