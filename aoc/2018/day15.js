@@ -7,7 +7,7 @@ const OPEN = '.'
 const prod = require('fs').readFileSync('15.txt', 'utf-8').split('\n')
 
 const text = fs.readFileSync(`_15.txt`, 'utf-8').replace(/-->/g, ' ')
-const tests = text.split('----').map(text => {
+let tests = text.split('----').map(text => {
   const lines = text.trim().split('\n')
   const last = lines.pop()
   const match = last.match(/Outcome: (\d+) \* (\d+) = (\d+)/)
@@ -27,7 +27,7 @@ const tests = text.split('----').map(text => {
   return { rounds, hp, total, input, final, healths }
 })
 
-//tests.push({input: prod})
+tests.push({input: prod})
 
 const initGame = ({input}, power) => {
   const game = {
@@ -160,14 +160,15 @@ const stepGame = (game) => {
   game.pieces.forEach((p) => {
     if (!p.dead && !game.over) {
       moved = movePiece(game, p) || moved
-      counts[p.type] ++
+      if (!game.pieces.find(p => p.type === 'E') || !game.pieces.find(p => p.type === 'G')) {
+        game.over = true
+      }
     }
   })
-  if (counts.E === 0 || counts.G === 0) {
-    game.over = true
-  } else {
-    game.turn ++
+  if (game.over) {
+    return
   }
+  game.turn ++
   if (moved) {
     game.pieces = sortBy(game.pieces, 'index')
     // print(game)
@@ -193,6 +194,7 @@ const runGame = (game) => {
   return victor
 }
 
+// tests = tests.slice(0,1)
 tests.forEach(test => {
   const game = initGame(test, 3)
   runGame(game)
@@ -202,9 +204,13 @@ tests.forEach(test => {
   let victor
   let power = 4
   let game2
-  while (victor !== 'E') {
+  while (true) {
     game2 = initGame(test, power)
+    const elves = game2.pieces.filter(p => p.type === 'E').length
     victor = runGame(game2)
+    if (game2.pieces.filter(p => p.type === 'E').length === elves) {
+      break
+    }
     power ++
   }
 })
