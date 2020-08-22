@@ -106,7 +106,7 @@ const Geo = (x0, x_max, y0, y_max) => {
     dindexes: [-W, 1, W, -1],
     i2xy: (i) => [mod(i, W), Math.floor(i / W)],
     xy2i: (xy) => xy[0] + xy[1] * W,
-    print(board, {from_xy=[x0,y0], to_xy=[x_max, y_max], delimiter=' ',empty=' ', extras=[]}={}) {
+    print(board, {from_xy=[x0,y0], to_xy=[x_max, y_max], delimiter='',empty=' ', extras=[]}={}) {
       const xs = range(from_xy[0], to_xy[0]+1)
       const ys = range(from_xy[1], to_xy[1]+1)
       ys.forEach((y) => {
@@ -207,9 +207,9 @@ Geo.fromPairs = (xys, values) => {
   const xs = xys.map((p) => p[0])
   const ys = xys.map((p) => p[1])
   const x_max = Math.max(...xs)
-  const x_min = Math.min(0, ...xs)
+  const x_min = Math.min(...xs)
   const y_max = Math.max(...ys)
-  const y_min = Math.min(0, ...ys)
+  const y_min = Math.min(...ys)
   const geo = Geo(x_min, x_max, y_min, y_max)
   return { geo, board: geo.makeBoard(xys, values) }
 }
