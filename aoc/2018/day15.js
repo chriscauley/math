@@ -7,11 +7,11 @@ const OPEN = '.'
 const prod = require('fs').readFileSync('15.txt', 'utf-8').split('\n')
 
 const text = fs.readFileSync(`_15.txt`, 'utf-8').replace(/-->/g, ' ')
-let tests = text.split('----').map(text => {
+let tests = text.split('----').map((text, test_no) => {
   const lines = text.trim().split('\n')
   const last = lines.pop()
-  const match = last.match(/Outcome: (\d+) \* (\d+) = (\d+)/)
-  const [_, rounds, hp, total ] = match
+  const match = last.match(/Outcome: (\d+) \* (\d+) = (\d+) - (\d+)/)
+  const [_, rounds, hp, expected, expected2 ] = match
   const input = []
   const final = []
   const healths = []
@@ -24,14 +24,17 @@ let tests = text.split('----').map(text => {
       healths.push({y, type, health})
     })
   })
-  return { rounds, hp, total, input, final, healths }
+  return { rounds, hp, expected, expected2, input, final, healths, name: `test${test_no}` }
 })
 
-tests.push({input: prod})
+tests.push({input: prod, name: 'prod', total: '193476', total2: '36768'})
 
-const initGame = ({input}, power) => {
+const initGame = ({input, expected, expected2, name}, power) => {
   const game = {
-    input
+    expected,
+    expected2,
+    input,
+    name
   }
   const xys = []
   const pieces = []
@@ -185,9 +188,12 @@ const runGame = (game) => {
       log(game.pieces)
       const total_hp = sum(game.pieces.map(p=> p.dead ? 0 : p.hp))
       victor = game.pieces[0].type
-      if (victor === 'E' || game.power === 3) {
-        console.log(`${victor}@${game.power}`,game.turn,'*', total_hp,'=', game.turn * total_hp)
+      game.score = game.turn * total_hp
+      game.counts = {
+        E: game.pieces.filter(p => p.type === 'E').length,
+        G: game.pieces.filter(p => p.type === 'G').length,
       }
+      log(`${victor}@${game.power}`,game.turn,'*', total_hp,'=', game.score)
       break
     }
   }
@@ -198,6 +204,8 @@ const runGame = (game) => {
 tests.forEach(test => {
   const game = initGame(test, 3)
   runGame(game)
+  // print(game)
+  answer(`${game.name}-p1`,game.score.toString(), game.expected)
 })
 console.log()
 tests.forEach(test => {
@@ -213,4 +221,5 @@ tests.forEach(test => {
     }
     power ++
   }
+  answer(`${game2.name}-p1`,game2.score.toString(), game2.expected2)
 })
