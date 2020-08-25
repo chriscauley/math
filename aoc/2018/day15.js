@@ -4,7 +4,7 @@ const { Geo, answer, log, alphanum } = require('./tools')
 
 const OPEN = '.'
 
-const prod = require('fs').readFileSync('15.txt', 'utf-8').split('\n')
+const prod = fs.readFileSync('15.txt', 'utf-8').split('\n')
 
 const text = fs.readFileSync(`_15.txt`, 'utf-8').replace(/-->/g, ' ')
 let tests = text.split('----').map((text, test_no) => {
