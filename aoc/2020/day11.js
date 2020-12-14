@@ -101,4 +101,4 @@ answer('test', part1(test), 37)
 answer('input', part1(input), 2281)
 
 answer('test2', part2(test), 26)
-answer('input2', part2(input), undefined)
+answer('input2', part2(input), 2085)
